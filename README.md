@@ -38,11 +38,10 @@ Add an entity or entities to the db:
 ;;                     :qux? {true #{0}}}
 ;;     :silc.core/eav {0M {:foo "bar",
 ;;                         :qux? true}}}
-
 ;; see how the attributes are accessible by value or by entity (as both attributes specified are indexed by value).
 
 ;;you can also create multiple entities at a time
-(creates mydb [{:foo "bar}, {:baz "dfsdf"}])
+(creates mydb [{:foo "bar"}, {:baz "dfsdf"}])
 
 ;;if you are interested in the id that was assigned 
 (create-pair mydb {:baz "bar"})
