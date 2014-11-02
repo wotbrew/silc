@@ -11,7 +11,7 @@ The core is 2 indexes, eav and ave.
 ## Usage
 
 ```clojure
-[silc "0.1.0-SNAPSHOT"]
+[silc "0.1.0"]
 ```
 
 ```clojure
