@@ -21,7 +21,7 @@ The core is 2 indexes, eav and ave.
 Create an initial db (optional, you can use nil or an existing map if you do not wish any special indexing)
 
 ```clojure
-;;pass in a set of attributes that you wish to cause in the indexing by value.
+;;pass in a set of attributes that you wish to cause indexing by value.
 (db #{:foo, :qux?})
 ;; => {:silc.core/ave? #{:foo, :qux?}}
 ;; - the db is just a map, all the keys created by silc are namespaced.
