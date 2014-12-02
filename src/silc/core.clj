@@ -70,10 +70,11 @@
   "Removes the given attribute from the composite index for entity `e`.
    if the composite value is empty, then remove it completely."
   [m e a cset]
-  (let [val (att m e cset)]
-    (if (every? nil? (vals (dissoc val a)))
+  (let [val (att m e cset)
+        without (dissoc val a)]
+    (if (every? nil? (vals without))
       (unindex m e cset val)
-      (set-att m e cset (assoc val a nil)))))
+      (set-att m e cset without))))
 
 (defn- unindex-composites
   "Removes indexed values under the given seq of composite indexes"
@@ -115,7 +116,7 @@
   [m index]
   (let [index (set index)
         m (assoc m ::ave? (conj (::ave? m #{}) index))]
-    (-> (fn [m c] (update-in m [::composites c] conj index))
+    (-> (fn [m c] (update-in m [::composites c] (fnil conj #{}) index))
         (reduce m index))))
 
 (defn with-composite-indexes*
@@ -123,6 +124,12 @@
    e.g (with-composite-indexes* {} [#{:foo :bar} #{:baz :qux}]))"
   [m composites]
   (reduce with-composite-index m composites))
+
+(defn with-composite-indexes
+  "Includes the composite index for the given sets
+   e.g (with-composite-indexes {} [#{:foo :bar} #{:baz :qux}]))"
+  [m & composites]
+  (with-composite-indexes* m composites))
 
 (defn- set-composite
   [m e cset]
