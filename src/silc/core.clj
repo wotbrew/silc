@@ -106,9 +106,15 @@
 
 (defn with-indexes*
   "Includes the given by value indexes
-   e.g (with-indexes {} :foo, :bar}"
+   e.g (with-indexes {} [:foo, :bar]}"
   [m indexes]
   (assoc ::ave? m (set indexes)))
+
+(defn with-indexes
+  "Includes the given by value indexes
+   e.g (with-indexes {} :foo, :bar}"
+  [m & indexes]
+  (with-indexes* m indexes))
 
 (defn with-composite-index
   "Includes the composite index for the given sets
