@@ -1,6 +1,7 @@
 (ns silc.core-test
   (:require [silc.core :refer :all]
-            [midje.sweet :refer :all]))
+            [midje.sweet :refer :all]
+            [clojure.test :refer :all]))
 
 (comment
   (require 'midje.repl)
@@ -150,3 +151,41 @@
   (provided
    (create nil .atts.) => .m.
    (create .m. .atts2.) => .m2.)))
+
+
+(deftest test-composites
+  (let [m (with-composite-indexes {} #{:foo :bar} #{:foo :baz})
+        empty {:silc.core/composites {:foo #{#{:foo :bar}
+                                             #{:foo :baz}}
+                                      :bar #{#{:foo :bar}}
+                                      :baz #{#{:foo :baz}}}
+               :silc.core/ave?       #{#{:foo :bar} #{:foo :baz}}}]
+    (testing "the initial map here should be empty"
+      (is (= m empty)))
+    (testing "if I add a value that is part of an index"
+      (let [m (set-att m 0 :foo "foo")]
+        (testing "I should have still set the value"
+          (is (= (att m 0 :foo) "foo")))
+        (testing "I should also have the composite value(s) in my eav index - it won't include a value for bar or baz yet"
+          (is (= (att m 0 #{:foo :bar}) {:foo "foo"}))
+          (is (= (att m 0 #{:foo :baz}) {:foo "foo"})))
+        (testing "I should have the composite values in the ave index as well"
+          (is (= (with m #{:foo :bar} {:foo "foo"}) #{0}))
+          (is (= (with m #{:foo :baz} {:foo "foo"}) #{0})))
+        (testing "lets add the other values"
+          (let [m (set-atts m 0 {:bar "bar", :baz "baz"})]
+            (is (= (att m 0 :bar) "bar"))
+            (is (= (att m 0 :baz) "baz"))
+            (is (= (att m 0 #{:foo :bar}) {:foo "foo" :bar "bar"}))
+            (is (= (att m 0 #{:foo :baz}) {:foo "foo" :baz "baz"}))
+            (is (= (with m #{:foo :bar} {:foo "foo" :bar "bar"}) #{0}))
+            (is (= (with m #{:foo :baz} {:foo "foo" :baz "baz"}) #{0}))
+            (testing "make sure the old values aren't still in the ave index"
+              (is (= (with m #{:foo :bar} {:foo "foo"}) #{}))
+              (is (= (with m #{:foo :baz} {:foo "foo"}) #{})))))
+        (testing "lets delete the baz"
+          (let [m (delete-att m 0 :baz)]
+            (is (nil? (att m 0 :baz)))
+            (is (= (att m 0 #{:foo :baz}) {:foo "foo"}))
+            (testing "and finally clean up the entity, returning to my empty state"
+              (is (= (delete m 0) empty)))))))))
