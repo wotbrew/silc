@@ -64,13 +64,31 @@
       (dissoc-in m [::ave a v])
       (assoc-in m [::ave a v] set))))
 
+(declare unindex set-att)
+
+(defn- unindex-composite
+  "Removes the given attribute from the composite index for entity `e`.
+   if the composite value is empty, then remove it completely."
+  [m e a cset]
+  (let [val (att m e cset)]
+    (if (every? nil? (vals (dissoc val a)))
+      (unindex m e cset val)
+      (set-att m e cset (assoc val a nil)))))
+
+(defn- unindex-composites
+  "Removes indexed values under the given seq of composite indexes"
+  [m e a composites]
+  (-> (fn [m cset] (unindex-composite m e a cset))
+      (reduce m composites)))
+
 (defn- unindex
   "Removes the given e a v triple from `m` by deleting it from any indexes"
   [m e a v]
   (cond->
    m
    (contains? (ave m a v) e) (unindex-ave e a v)
-   :always (dissoc-in [::eav e a])))
+   :always (dissoc-in [::eav e a])
+   (contains? (::composites m) a) (unindex-composites e a (get-in m [::composites a]))))
 
 (defn delete-att
   "Removes the given attribute from the entity"
@@ -83,13 +101,48 @@
   (let [atts (keys (atts m e))]
     (reduce #(delete-att %1 e %2) m atts)))
 
+(declare set-att)
+
+(defn with-indexes*
+  "Includes the given by value indexes
+   e.g (with-indexes {} :foo, :bar}"
+  [m indexes]
+  (assoc ::ave? m (set indexes)))
+
+(defn with-composite-index
+  "Includes the composite index for the given sets
+   e.g (with-composite-index {} #{:foo :bar}))"
+  [m index]
+  (let [index (set index)
+        m (assoc m ::ave? (conj (::ave? m #{}) index))]
+    (-> (fn [m c] (update-in m [::composites c] conj index))
+        (reduce m index))))
+
+(defn with-composite-indexes*
+  "Includes the composite index for the given sets
+   e.g (with-composite-indexes* {} [#{:foo :bar} #{:baz :qux}]))"
+  [m composites]
+  (reduce with-composite-index m composites))
+
+(defn- set-composite
+  [m e cset]
+  (let [atts (atts m e)]
+    (set-att m e cset (select-keys atts cset))))
+
+(defn- set-composites
+  [m e a]
+  (->
+    (fn [m cset] (set-composite m e cset))
+    (reduce m (get-in m [::composites a]))))
+
 (defn- index
   "Adds the given e a v triple to `m` indexing if it has been configured for the attribute."
   [m e a v]
   (cond->
    m
    (contains? (::ave? m) a) (update-in [::ave a v] (fnil conj #{}) e)
-   :always (assoc-in [::eav e a] v)))
+   :always (assoc-in [::eav e a] v)
+   (contains? (::composites m) a) (set-composites e a)))
 
 (declare set-atts)
 
