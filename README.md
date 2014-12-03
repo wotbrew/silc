@@ -36,7 +36,7 @@ If you wish to maintain composite indexes you have to add them when you create t
 (with-composite-indexes (db #{:foo :qux?}) #{:foo :bar})
 ```
 
-*Which attributes to index **must** be decided at the time the db is empty, you change the indexing strategy once entities are created*
+_Which attributes to index **must** be decided at the time the db is empty, you cannot change the indexing strategy once entities are created_
 
 ### Adding entities
 
@@ -96,6 +96,8 @@ If you have boolean values or flags, you can use the `all` fn as a shortcut. it 
 
 ### 'Change' entities and their attributes
 
+All changes, like creation and deletion simply return a new database value
+
 ```clojure
 (set-att mydb2 0M :foo "wut"} ;; sets a single attribute to the value
 (set-att mydb2 0M :foo "wut", :bar 42} ;; overloaded on arity
@@ -104,7 +106,7 @@ If you have boolean values or flags, you can use the `all` fn as a shortcut. it 
 (set-atts mydb2 0M {:bar 42, :fred :ethel})
 ```
 
-###Delete entities
+### Delete entities
 
 ```clojure
 (delete mydb2 0M) 
@@ -113,7 +115,12 @@ If you have boolean values or flags, you can use the `all` fn as a shortcut. it 
 
 ```
 
-Have fun!
+Have fun! Contributions welcome!
+
+### TODO
+
+- optional core.logic query support?
+- attribute entity indexes, find the set of entities having a particular attribute.
 
 ## License
 
