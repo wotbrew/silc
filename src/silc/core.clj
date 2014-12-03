@@ -107,7 +107,7 @@
    (contains? (ave m a v) e) (dissoc-in-disj [::ave a v] e)
    (::enable-ae-index? m) (dissoc-in-disj [::ae a] e)
    :always (dissoc-in [::eav e a])
-   (contains? (::composites m) a) (unindex-composites e a (get-in m [::composites a]))))
+   (contains? (::composite m) a) (unindex-composites e a (get-in m [::composite a]))))
 
 (defn delete-att
   "Removes the given attribute from the entity"
@@ -140,7 +140,7 @@
   [m index]
   (let [index (set index)
         m (assoc m ::ave? (conj (::ave? m #{}) index))]
-    (-> (fn [m c] (update-in m [::composites c] (fnil conj #{}) index))
+    (-> (fn [m c] (update-in m [::composite c] (fnil conj #{}) index))
         (reduce m index))))
 
 (defn with-composite-indexes*
@@ -171,7 +171,7 @@
   [m e a]
   (->
     (fn [m cset] (set-composite m e cset))
-    (reduce m (get-in m [::composites a]))))
+    (reduce m (get-in m [::composite a]))))
 
 (defn- index
   "Adds the given e a v triple to `m` indexing if it has been configured for the attribute."
@@ -181,7 +181,7 @@
    (contains? (::ave? m) a) (update-in [::ave a v] (fnil conj #{}) e)
    (::enable-ae-index? m) (update-in [::ae a] (fnil conj #{}) e)
    :always (assoc-in [::eav e a] v)
-   (contains? (::composites m) a) (set-composites e a)))
+   (contains? (::composite m) a) (set-composites e a)))
 
 (declare set-atts)
 

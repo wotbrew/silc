@@ -155,10 +155,10 @@
 
 (deftest test-composites
   (let [m (with-composite-indexes {} #{:foo :bar} #{:foo :baz})
-        empty {:silc.core/composites {:foo #{#{:foo :bar}
+        empty {:silc.core/composite {:foo #{#{:foo :bar}
                                              #{:foo :baz}}
-                                      :bar #{#{:foo :bar}}
-                                      :baz #{#{:foo :baz}}}
+                                     :bar #{#{:foo :bar}}
+                                     :baz #{#{:foo :baz}}}
                :silc.core/ave?       #{#{:foo :bar} #{:foo :baz}}}]
     (testing "the initial map here should be empty"
       (is (= m empty)))
