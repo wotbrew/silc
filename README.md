@@ -158,7 +158,7 @@ Merge in a map of attributes and values using the `set-atts` fn
 ```clojure
 (set-atts mydb2 0 {:bar 42, :fred :ethel})
 ```
-`delete-att` is the `dissoc` of silc. It removes an attribute from an entities.
+`delete-att` is the `dissoc` of silc. It removes an attribute from an entity.
 
 ```clojure
 (delete-att mydb2 0 :name) 
