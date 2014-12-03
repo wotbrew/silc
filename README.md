@@ -31,7 +31,7 @@ All the functions are in the `silc.core` namespace
 The database used by silc is *just a map*. You can use an existing map if you want (silc uses namespaced keys).
 If you do not care about indexing - then that is all you need to do!
 
-**NB** _ All the change, addition and deletion functions simply return a new database value. silc is completely pure..._
+**NB** _All the change, addition and deletion functions simply return a new database value. silc is completely pure..._
 
 ###Indexing
 
