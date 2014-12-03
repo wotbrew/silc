@@ -120,19 +120,19 @@
 (facts
  "about `id`"
  (fact
-  "simply returns 0M as the default"
-  (id nil) => 0M
-  (id {}) => 0M)
+  "simply returns 0 as the default"
+  (id nil) => 0
+  (id {}) => 0)
  (fact
   "returns value at :silc.core/id if its there"
-  (id {:silc.core/id 42M}) => 42M))
+  (id {:silc.core/id 42}) => 42))
 
 (facts
  "about `create`"
  (fact
   "creates an entity and assigns attributes"
-  (create nil {:foo 1, :bar "bar"}) => {:silc.core/eav {0M {:foo 1, :bar "bar"}}
-                                        :silc.core/id 1M}))
+  (create nil {:foo 1, :bar "bar"}) => {:silc.core/eav {0 {:foo 1, :bar "bar"}}
+                                        :silc.core/id 1}))
 
 (facts
  "about `create-pair`"
