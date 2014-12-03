@@ -11,13 +11,25 @@ The core is 3 indexes, `eav` and `ave` and `composite`.
 
 ## Usage
 
+###Release
+
 ```clojure
 [silc "0.1.1"]
 ```
 
+###Snapshot
+
+```clojure
+[silc "0.1.2-SNAPSHOT"]
+```
+
+All the functions are in the silc.core namespace
+
 ```clojure
 (require ['silc.core :refer :all])
 ```
+
+
 ###Create a db
 
 Create an initial db using the `db` fn
@@ -64,33 +76,33 @@ Add an entity or entities to the db via the `create`, `creates` or `create-pair`
 (def mydb2 (creates mydb [{:foo "foo", :qux? true, :bar "bar0"}
                           {:foo "foo", :qux? true, :bar "bar1"}])) ;;db of 2 entities
                           
-(entities mydb2) ;; => (0M, 1M) 
+(entities mydb2) ;; => (0, 1) 
 ```
 `atts` returns all the entities of a given entity as a map, including the composite entries introduced 
 by the composite index. `att` simply returns the attribute value.
 ```clojure
-(atts mydb2 0M) ;; => {:foo "foo", :qux? true, #{:foo :bar} {:foo "foo", :bar "bar0"}}
+(atts mydb2 0) ;; => {:foo "foo", :qux? true, #{:foo :bar} {:foo "foo", :bar "bar0"}}
 
 ;;returns the value for the attribute
-(att mydb2 1M :foo) ;; => "foo"
-(att mydb2 1M :not-there :default) ;; => :default
+(att mydb2 1 :foo) ;; => "foo"
+(att mydb2 1 :not-there :default) ;; => :default
 ```
 
 The `with` fn returns all entities having an attribute with a particular value, using the ave index if possible.
 ```clojure
-(with mydb2 :qux? true) ;; => #{0M, 1M}
-(with mydb2 :foo "foo") ;; => #{0M, 1M}
+(with mydb2 :qux? true) ;; => #{0, 1}
+(with mydb2 :foo "foo") ;; => #{0, 1}
 (with mydb2 :wut? :could-be-anything) ;; => #{}
 ```
 The `with` fn can be used with a composite value - provided it is indexed
 ```clojure
-(with mydb2 #{:foo :bar} {:foo "foo", :bar "bar0"}) ;; => #{0M}
+(with mydb2 #{:foo :bar} {:foo "foo", :bar "bar0"}) ;; => #{0}
 ```
 
 If you have boolean values or flags, you can use the `all` fn as a shortcut. it finds all entities where the attribute value is true. Not truthy, literally `true`.
 
 ```clojure
-(all mydb2 :qux?) => ;; =>  #{0M, 1M}
+(all mydb2 :qux?) => ;; =>  #{0, 1}
 ```
 
 
@@ -99,17 +111,17 @@ If you have boolean values or flags, you can use the `all` fn as a shortcut. it 
 All changes, like creation and deletion simply return a new database value
 
 ```clojure
-(set-att mydb2 0M :foo "wut"} ;; sets a single attribute to the value
-(set-att mydb2 0M :foo "wut", :bar 42} ;; overloaded on arity
+(set-att mydb2 0 :foo "wut"} ;; sets a single attribute to the value
+(set-att mydb2 0 :foo "wut", :bar 42} ;; overloaded on arity
 
 ;; merge in a single map
-(set-atts mydb2 0M {:bar 42, :fred :ethel})
+(set-atts mydb2 0 {:bar 42, :fred :ethel})
 ```
 
 ### Delete entities
 
 ```clojure
-(delete mydb2 0M) 
+(delete mydb2 0) 
 ;; deletes a single entity, removing all attributes from the eav index. 
 ;; also removes the entity from any ave indexed attribute value pairs.
 
