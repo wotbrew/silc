@@ -194,7 +194,7 @@
      (set-atts m e (cons [a v] avs))))
 
 (defn set-atts
-  "Sets the attributes on entities to be equal"
+  "Merges a map of attributes into the entity"
   [m e avs]
   (reduce #(apply set-att %1 e %2) m avs))
 
