@@ -59,6 +59,22 @@
   [m a]
   (with m a true))
 
+(defn submap?
+  [m m2]
+  (every? (fn [[k v]] (= v (get m2 k))) (seq m)))
+
+(defn with-many
+  "Given a map of attributes to values - find all entities
+   having where their attributes are a subset of those presented in the map.
+
+   Will utilize the composite index if each key in the `attmap`
+   participates in a composite, if so such a lookup is performed in effectively constant time."
+  [m attmap]
+  (or (ave m (set (keys attmap)) attmap)
+      (set (for [e (entities m)
+                 :when (submap? attmap (atts m e))]
+             e))))
+
 (defn having
   "Returns all entities having a particular attribute.
 
