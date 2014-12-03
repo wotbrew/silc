@@ -178,17 +178,19 @@
   [index-by-value]
   {::ave? index-by-value})
 
+(def default-seed (biginteger 0))
+
 (defn id
   "Returns the next id that would be used to create a new entity"
   [m]
-  (::id m 0M))
+  (::id m default-seed))
 
 (defn create
   "Creates an entity, assigning the next id as the entity (as of `id`)
    takes a map of initial attributes to assign"
   ([m attmap]
      (-> (set-atts m (id m) attmap)
-         (update-in [::id] (fnil inc 0M)))))
+         (update-in [::id] (fnil inc default-seed)))))
 
 (defn create-pair
   "Like `create` but returns a tuple of the assigned id and new db"
