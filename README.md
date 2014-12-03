@@ -1,138 +1,182 @@
-# silc
+# silc 
 
-A small map based datastore for clojure for managing entity identities and attributes - where sometimes those entities need to be retrieved by attribute value, or multiple attribute values quickly.
+A small map based datastore for clojure for managing entity identities and their attributes. Useful when you need to manage many identities (simulations, games) but want to keep your code pure.
 
-I have found this useful for the basis of a lightweight entity-component system for games.
-
-The core is 3 indexes, `eav` and `ave` and `composite`.
-- `eav` is a simple index of entity-id to map of attributes. This index is maintained for every attribute.
-- `ave` is an index of attribute to value to set of entites with that attribute value pair. This index is optional.
-- the `composite` index maintains dummy attributes that are sets - so if you have two attributes :foo, :bar and are interested in looking up all entities where :foo is "fred" and :bar is "ethel" for example - you can do so as O(log32 N) operation. These indexes are relatively expensive maintain and are of course optional.
+## Goals
+- Simple interface with predictable performance
+- Has to be fast enough for usage in at least simple games, so very fast, at least on reads.
+- The ability to enable automatic hash based indexing for effectively constant lookup of:
+ - _entity attributes._
+ - _entities by attribute value or composite thereof._
+ - _entities by attribute._
+- The ability to trade-off memory and disable indexes if appropriate.
 
 ## Usage
 
-###Release
+Include in your `project.clj`
 
 ```clojure
-[silc "0.1.1"]
+[silc "0.1.2"]
 ```
 
-###Snapshot
 
-```clojure
-[silc "0.1.2-SNAPSHOT"]
-```
-
-All the functions are in the silc.core namespace
+All the functions are in the `silc.core` namespace
 
 ```clojure
 (require ['silc.core :refer :all])
 ```
 
+###Getting started
 
-###Create a db
+The database used by silc is *just a map*. You can use an existing map if you want (silc uses namespaced keys).
+If you do not care about indexing - then that is all you need to do!
 
-Create an initial db using the `db` fn
-(optional, you can use nil or an existing map if you do not wish any special indexing).
+**NB** _ All the change, addition and deletion functions simply return a new database value. silc is completely pure..._
 
+###Indexing
+
+The core of silc are the 4 indexes, `eav`, `ave`, `ae` and `composite`.
+- `eav` is a simple index of entity-id to map of attributes. This index is always maintained for every attribute, it is the primary index.
+- **optional** `ave`is an index of attribute to value to set of entites with that attribute value pair. This index can be enabled for particular attributes.
+- **optional** `ae` is an index of attributes to sets of entities having that attribute. This index is optional and is enabled for a given database as a whole.
+- **optional** `composite` maintains dummy attributes that are sets - so if you have two attributes :foo, :bar and are interested in looking up all entities where :foo is "fred" and :bar is "ethel" for example - you can do so as an O(log32 N) operation. This index is enabled for particular sets of attributes.
+
+The `db` fn is the easiest way to get a silc db with some indexing by value:
 ```clojure
-;;pass in a set of attributes that you wish to cause indexing by value.
-(db #{:foo, :qux?})
-;; => {:silc.core/ave? #{:foo, :qux?}}
-;; - the db is just a map, all the keys created by silc are namespaced.
+(db #{:position, :map, :creature?}) 
+;; => will create a new map with the ave index enabled for :position, :map and :creature
 ```
 
-If you wish to maintain composite indexes you have to add them when you create the db with the `with-composite-indexes` fn.
+- You can enable `ave` indexing with the `with-indexes` fn
+- If you wish to maintain `composite` indexing use the `with-composite-indexes` fn.
+- You can enable the `ae` index with the `enable-ae-indexing` fn
 
+Example:
 ```clojure
-(with-composite-indexes (db #{:foo :qux?}) #{:foo :bar})
+(-> {} 
+    (with-indexes :position :map :creature?) ;;by value indexes will be maintained for these attributes
+    (with-composite-indexes #{:position :map}) ;;composite indexes will be maintained for each set I pass
+    enable-ae-indexing)) ;;ae indexing is enabled either all together, or not at all.
+    ;; => returns a new silc db, ready to rock!
 ```
 
-_Which attributes to index **must** be decided at the time the db is empty, you cannot change the indexing strategy once entities are created_
+
+**NB** _Indexing **must** be decided at the time the db is empty, you cannot change the indexing strategy once entities are created_
 
 ### Adding entities
 
 Add an entity or entities to the db via the `create`, `creates` or `create-pair` functions:
 
 ```clojure
-(def mydb (-> (db #{:foo, qux?})
-              (with-composite-indexes #{:foo :bar})))
-              
-;;create a single entity
-(create mydb {:foo "bar", :qux? true})
+(def mydb 
+  (-> {} 
+    (with-indexes :position :map :creature?)
+    (with-composite-indexes #{:position :map})
+    enable-ae-indexing)))
+```
+```clojure
+;;create a single entity with some initial attributes via 'create'
+(create mydb {:name "Fred", :position [0 0], :map :level1, :creature? true})
+;; => returns a new db with the entity added - a numeric id will be assigned
 
-;;you can also create multiple entities at a time
-(creates mydb [{:foo "bar"}, {:baz "dfsdf"}])
+;;you can also create multiple entities at a time via 'creates'
+(creates mydb [{:name "Fred", :creature? true, :position [0 0], :map :level1}
+               {:transition :level2, :stair? true, :position [1 0], :map :level1}])
+```               
 
-;;if you are interested in the id that was assigned 
-(create-pair mydb {:baz "bar"})
-;; => [0M, (the-db)]
+If you are interested in the id that was assigned you can find out using the `create-pair` fn.
+As the db is pure you can also look at the last id (`last-id`), or next id (`id`).
+
+```clojure
+(create-pair mydb {:name "Fred", :creature? true, :position [0 0], :map :level1})
+;; => [0, (the-db)]
+
 ```
 
 ###Query 
 
 `entities` simply returns all the entity identites.
 ```clojure
-(def mydb2 (creates mydb [{:foo "foo", :qux? true, :bar "bar0"}
-                          {:foo "foo", :qux? true, :bar "bar1"}])) ;;db of 2 entities
+(def mydb2 
+ (creates mydb ;;using the ave, composite and ae indexes
+  [{:name "Fred", :creature? true, :position [0 0], :map :level1} 
+   {:transition :level2, :stair? true, :position [1 0], :map :level1}])) ;;db of 2 entities
                           
 (entities mydb2) ;; => (0, 1) 
 ```
-`atts` returns all the entities of a given entity as a map, including the composite entries introduced 
-by the composite index. `att` simply returns the attribute value.
-```clojure
-(atts mydb2 0) ;; => {:foo "foo", :qux? true, #{:foo :bar} {:foo "foo", :bar "bar0"}}
 
-;;returns the value for the attribute
-(att mydb2 1 :foo) ;; => "foo"
+`att` simply returns the attribute value or the default value supplied.
+
+```clojure
+(att mydb2 0 :name) ;; => "Fred"
+(att mydb2 1 :not-there) ;; => nil
 (att mydb2 1 :not-there :default) ;; => :default
 ```
 
-The `with` fn returns all entities having an attribute with a particular value, using the ave index if possible.
+`atts` returns all the attributes of a given entity as a map, including the composite entries introduced 
+by the `composite` index.
 ```clojure
-(with mydb2 :qux? true) ;; => #{0, 1}
-(with mydb2 :foo "foo") ;; => #{0, 1}
+(atts mydb2 0) 
+;; => {:name "Fred", :creature? true, :position [0 0],
+;;     :map :level1,
+;;     #{:map, :position} {:map :level1, :position [0 0]}}}
+```
+
+The `with` fn returns all entities having an attribute with a particular value, using the `ave` index if possible.
+If the `ave` index hasn't been enabled for the given attribute - a linear scan is performed.
+```clojure
+(with mydb2 :map? :level1) ;; => #{0, 1}
+(with mydb2 :name "Fred") ;; => #{0}
 (with mydb2 :wut? :could-be-anything) ;; => #{}
 ```
-The `with` fn can be used with a composite value - provided it is indexed
+The `with` fn can be used with a composite value - provided it is indexed. This fn doesn't attempt to fall back on a linear scan like the others, so beware.
 ```clojure
-(with mydb2 #{:foo :bar} {:foo "foo", :bar "bar0"}) ;; => #{0}
+(with mydb2 #{:map :position} {:map :level1, :position [0 0]}) ;; => #{0}
 ```
 
 If you have boolean values or flags, you can use the `all` fn as a shortcut. it finds all entities where the attribute value is true. Not truthy, literally `true`.
 
 ```clojure
-(all mydb2 :qux?) => ;; =>  #{0, 1}
+(all mydb2 :creature?) => ;; =>  #{0}
 ```
 
+For checking which entities have an attribute you can use the `having` fn - this utilizes the `ae` index if enabled.
+```clojure
+(having mydb2 :position) ;; => #{0, 1}
+```
 
 ### 'Change' entities and their attributes
 
-All changes, like creation and deletion simply return a new database value
+`set-att` is the `assoc` of silc. It sets an attribute value on an entity, or introduces a new attribute. It is overloaded to take many attribute value pairs.
 
 ```clojure
-(set-att mydb2 0 :foo "wut"} ;; sets a single attribute to the value
+(set-att mydb2 0 :poisoned? true}
 (set-att mydb2 0 :foo "wut", :bar 42} ;; overloaded on arity
+```
 
-;; merge in a single map
+Merge in a map of attributes and values using the `set-atts` fn
+```clojure
 (set-atts mydb2 0 {:bar 42, :fred :ethel})
+```
+`delete-att` is the `dissoc` of silc. It removes an attribute from an entities.
+
+```clojure
+(delete-att mydb2 0 :name) 
 ```
 
 ### Delete entities
 
+`delete` deletes a single entity and removes any trace of it and its attributes from all indexes.
+
 ```clojure
 (delete mydb2 0) 
-;; deletes a single entity, removing all attributes from the eav index. 
-;; also removes the entity from any ave indexed attribute value pairs.
-
 ```
-
-Have fun! Contributions welcome!
 
 ### TODO
 
 - optional core.logic query support?
-- attribute entity indexes, find the set of entities having a particular attribute.
+
+## Contributions welcome!
 
 ## License
 
