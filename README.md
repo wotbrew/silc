@@ -95,7 +95,7 @@ As the db is pure you can also look at the last id (`last-id`), or next id (`id`
 
 ###Query 
 
-`entities` simply returns all the entity identites.
+`entities` simply returns all the entity identities.
 ```clojure
 (def mydb2 
  (creates mydb ;;using the ave, composite and ae indexes
@@ -129,7 +129,7 @@ If the `ave` index hasn't been enabled for the given attribute - a linear scan i
 (with mydb2 :name "Fred") ;; => #{0}
 (with mydb2 :wut? :could-be-anything) ;; => #{}
 ```
-The `with` fn can be used with a composite value - provided it is indexed. This fn doesn't attempt to fall back on a linear scan like the others, so beware.
+The `with` fn can be used with a composite value - provided it is indexed.
 ```clojure
 (with mydb2 #{:map :position} {:map :level1, :position [0 0]}) ;; => #{0}
 ```
