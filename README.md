@@ -36,7 +36,7 @@ If you wish to maintain composite indexes you have to add them when you create t
 (with-composite-indexes (db #{:foo :qux?}) #{:foo :bar})
 ```
 
-_Which attributes to index **must** be decided at the time the db is empty, you change the indexing strategy once entities are created_
+_Which attributes to index **must** be decided at the time the db is empty, you cannot change the indexing strategy once entities are created_
 
 ### Adding entities
 
