@@ -211,6 +211,12 @@
   [m]
   (::id m default-seed))
 
+(defn last-id
+  "Returns the last id (or nil if never assigned) assigned to an entity"
+  [m]
+  (when-let [id (id m)]
+    (dec id)))
+
 (defn create
   "Creates an entity, assigning the next id as the entity (as of `id`)
    takes a map of initial attributes to assign"
