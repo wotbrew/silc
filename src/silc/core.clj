@@ -178,7 +178,7 @@
   [index-by-value]
   {::ave? index-by-value})
 
-(def default-seed (biginteger 0))
+(def default-seed (long 0))
 
 (defn id
   "Returns the next id that would be used to create a new entity"
