@@ -44,7 +44,7 @@ The core of silc are the 4 indexes, `eav`, `ave`, `ae` and `composite`.
 The `db` fn is the easiest way to get a silc db with some indexing by value:
 ```clojure
 (db #{:position, :map, :creature?}) 
-;; => will create a new map with the ave index enabled for :position, :map and :creature
+;; => will create a new map with the ave index enabled for :position, :map and :creature?
 ```
 
 - You can enable `ave` indexing with the `with-indexes` fn
