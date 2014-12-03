@@ -54,6 +54,7 @@
  (fact
   "else it does a linear scan by using entities and atts"
   (with .m. :foo "bar") => #{0 1}
+  (with-many .m. {:foo "bar"}) => #{0 1}
   (with .m. :something :else) => #{2}
   (with .m. nil nil) => #{}
   (prerequisites
@@ -178,8 +179,12 @@
             (is (= (att m 0 :baz) "baz"))
             (is (= (att m 0 #{:foo :bar}) {:foo "foo" :bar "bar"}))
             (is (= (att m 0 #{:foo :baz}) {:foo "foo" :baz "baz"}))
-            (is (= (with m #{:foo :bar} {:foo "foo" :bar "bar"}) #{0}))
-            (is (= (with m #{:foo :baz} {:foo "foo" :baz "baz"}) #{0}))
+            (is (= (with m #{:foo :bar} {:foo "foo" :bar "bar"})
+                   (with-many m {:foo "foo", :bar "bar"})
+                   #{0}))
+            (is (= (with m #{:foo :baz} {:foo "foo" :baz "baz"})
+                   (with-many m {:foo "foo", :baz "baz"})
+                   #{0}))
             (testing "make sure the old values aren't still in the ave index"
               (is (= (with m #{:foo :bar} {:foo "foo"}) #{}))
               (is (= (with m #{:foo :baz} {:foo "foo"}) #{})))))
