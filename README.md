@@ -55,7 +55,7 @@ Example:
 ```clojure
 (-> {} 
     (with-indexes :position :map :creature?) ;;by value indexes will be maintained for these attributes
-    (with-composite-indexes #{:position :map}) ;;composite indexes will be maintained for each set I pass
+    (with-composite-indexes #{:position :map}) ;;composite indexes will be maintained for each set given
     enable-ae-indexing)) ;;ae indexing is enabled either all together, or not at all.
     ;; => returns a new silc db, ready to rock!
 ```
