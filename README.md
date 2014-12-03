@@ -174,10 +174,11 @@ Merge in a map of attributes and values using the `set-atts` fn
 
 ### TODO
 
-- optional core.logic query support?
-- the composite index could be cleaned up
-  you should be able to do something like (with-many m {:foo "fred", :bar "ethel"})
+- optional core.logic query support
+- the composite index could be cleaned up a bit.
+  You should be able to do something like (with-many m {:foo "fred", :bar "ethel"})
   rather than naming the set as its redundant.
+- clojurescript/cljx
 
 ## Contributions welcome!
 
