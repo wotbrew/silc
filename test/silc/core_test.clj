@@ -189,3 +189,31 @@
             (is (= (att m 0 #{:foo :baz}) {:foo "foo"}))
             (testing "and finally clean up the entity, returning to my empty state"
               (is (= (delete m 0) empty)))))))))
+
+(deftest test-having
+  (let [m (-> (create {} {:foo 1, :bar 2})
+              (create {:foo "foo"}))
+        with-ae (->
+                  (enable-ae-indexing {})
+                  (create {:foo 1, :bar 2})
+                  (create {:foo "foo"}))]
+    (is (= (having m :foo)
+           (having with-ae :foo)
+           #{0, 1}))
+    (is (= (having m :bar)
+           (having with-ae :bar)
+           #{0}))
+    (is (= (having m :fred)
+           (having with-ae :fred)
+           #{}))))
+
+(deftest test-ae-indexing
+  (let [m (-> (enable-ae-indexing {})
+              (create {:foo "foo", :bar "bar"}))]
+    (testing "If I create an entity its attributes are added into the ae index"
+      (is (= (:silc.core/ae m)
+             {:foo #{0}
+              :bar #{0}}))
+      (testing "If I delete an attribute the entity is removed from the corresponding ae index"
+        (is (= (:silc.core/ae (delete-att m 0 :foo))
+               {:bar #{0}}))))))

@@ -42,7 +42,9 @@
   (keys (::eav m)))
 
 (defn with
-  "Returns the set of all entities having attribute with the specified value"
+  "Returns the set of all entities having attribute with the specified value
+
+   If the ave index has been enabled for the attribute - this is effectively a constant time operation. O(log32 N)"
   [m a v]
   (or (ave m a v)
       (set (for [e (entities m)
@@ -51,18 +53,33 @@
              e))))
 
 (defn all
-  "Like (with m a true)"
+  "Like (with m a true)
+
+   If the ave index has been enabled for the attribute - this is effectively a constant time operation. O(log32 N)"
   [m a]
   (with m a true))
 
-(defn- unindex-ave
-  "Removes the entity from the ave index for attribute/value"
-  [m e a v]
-  (let [current (ave m a v)
-        set (disj current e)]
+(defn having
+  "Returns all entities having a particular attribute.
+
+   If the ae index has been enabled - this is effectively a constant time operation. O(log32 N)"
+  [m a]
+  (if (::enable-ae-index? m)
+    (-> m ::ae (get a) (or #{}))
+    (set (for [e (entities m)
+               :when (att m e a)]
+           e))))
+
+(defn dissoc-in-disj
+  "Removes the value `v` from the set in the map whose location
+   is given by the key sequence `keys`. If the set would be empty
+   the entry is removed from the map. (like `dissoc-in`)"
+  [m keys v]
+  (let [current (get-in m keys)
+        set (disj current v)]
     (if (empty? set)
-      (dissoc-in m [::ave a v])
-      (assoc-in m [::ave a v] set))))
+      (dissoc-in m keys)
+      (assoc-in m keys set))))
 
 (declare unindex set-att)
 
@@ -87,7 +104,8 @@
   [m e a v]
   (cond->
    m
-   (contains? (ave m a v) e) (unindex-ave e a v)
+   (contains? (ave m a v) e) (dissoc-in-disj [::ave a v] e)
+   (::enable-ae-index? m) (dissoc-in-disj [::ae a] e)
    :always (dissoc-in [::eav e a])
    (contains? (::composites m) a) (unindex-composites e a (get-in m [::composites a]))))
 
@@ -137,6 +155,13 @@
   [m & composites]
   (with-composite-indexes* m composites))
 
+(defn enable-ae-indexing
+  "Enables the attribute entity index for all attributes.
+   This enables you to retreive all the entites having a particular attribute
+   with any value"
+  [m]
+  (assoc m ::enable-ae-index? true))
+
 (defn- set-composite
   [m e cset]
   (let [atts (atts m e)]
@@ -154,6 +179,7 @@
   (cond->
    m
    (contains? (::ave? m) a) (update-in [::ave a v] (fnil conj #{}) e)
+   (::enable-ae-index? m) (update-in [::ae a] (fnil conj #{}) e)
    :always (assoc-in [::eav e a] v)
    (contains? (::composites m) a) (set-composites e a)))
 
