@@ -167,7 +167,7 @@
 
 (defn with-composite-indexes
   "Includes the composite index for the given sets
-   e.g (with-composite-indexes {} [#{:foo :bar} #{:baz :qux}]))"
+   e.g (with-composite-indexes {} #{:foo :bar} #{:baz :qux}))"
   [m & composites]
   (with-composite-indexes* m composites))
 
