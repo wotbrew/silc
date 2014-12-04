@@ -142,7 +142,7 @@
   "Includes the given by value indexes
    e.g (with-indexes {} [:foo, :bar]}"
   [m indexes]
-  (assoc ::ave? m (set indexes)))
+  (assoc m ::ave? (set indexes)))
 
 (defn with-indexes
   "Includes the given by value indexes
