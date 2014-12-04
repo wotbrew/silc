@@ -134,6 +134,12 @@ The `with` fn can be used with a composite value - provided it is indexed.
 (with mydb2 #{:map :position} {:map :level1, :position [0 0]}) ;; => #{0}
 ```
 
+The `with-many` function can be used in a similar fashion for composite indexes
+but falls back on a linear scan if the required index is not available
+```clojure
+(with-many mydb2 {:map :level1, :position [0 0]}) ;; => #{0}
+```
+
 If you have boolean values or flags, you can use the `all` fn as a shortcut. it finds all entities where the attribute value is true. Not truthy, literally `true`.
 
 ```clojure

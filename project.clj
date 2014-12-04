@@ -1,4 +1,4 @@
-(defproject silc "0.1.3"
+(defproject silc "0.1.4-SNAPSHOT"
   :description "A simple entity database for clojure"
   :url "http://github.com/danstone/silc"
   :license {:name "Eclipse Public License"
