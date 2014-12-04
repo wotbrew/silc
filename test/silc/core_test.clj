@@ -222,3 +222,7 @@
       (testing "If I delete an attribute the entity is removed from the corresponding ae index"
         (is (= (:silc.core/ae (delete-att m 0 :foo))
                {:bar #{0}}))))))
+
+(deftest test-with-indexes
+  (is (= (with-indexes {} :foo :bar)
+         (db #{:foo :bar}))))
