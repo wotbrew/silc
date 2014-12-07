@@ -16,7 +16,7 @@ A small map based datastore for clojure for managing entity identities and their
 Include in your `project.clj`
 
 ```clojure
-[silc "0.1.5"]
+[silc "0.1.6"]
 ```
 
 
