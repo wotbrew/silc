@@ -48,7 +48,7 @@
   [m a v]
   (or (ave m a v)
       (set (for [e (entities m)
-                 :when (= (att m e a) val)]
+                 :when (= (att m e a) v)]
              e))))
 
 (defn all
