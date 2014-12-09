@@ -213,6 +213,12 @@
   [m e avs]
   (reduce #(apply set-att %1 e %2) m avs))
 
+(defn update-att
+  "Applies the function f (plus any args)
+   to the value for the attribute `a` on entity `e`"
+  [m e a f & args]
+  (set-att m e a (apply f (att m e a) args)))
+
 (defn db
   "Creates a new database when provided with a set of attributes
    to index by value"
